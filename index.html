@@ -748,10 +748,14 @@
       showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 1800);
     }
 
+    function normalizeNewlines(text) {
+      return text.replace(/\\r\\n|\\r|\\n|\\u2028|\\u2029|\\u0085/g, "\\n");
+    }
+
     function updateStats(text, target) {
       const chars = text.length;
       const words = text.trim() ? text.trim().split(/\\s+/).length : 0;
-      const lines = text.replace(/\\r\\n?|\\n/g, "\\n").split("\\n").length;
+      const lines = normalizeNewlines(text).split("\\n").length;
       target.textContent = `${chars} chars \\u00b7 ${words} words \\u00b7 ${lines} lines`;
     }
 
@@ -930,23 +934,42 @@
       return /[A-Za-z0-9]/.test(ch);
     }
 
-    function reverseLinePreserveLatin(line) {
-      const tokens = line.match(/[A-Za-z0-9]+/g) || [];
-      if (!tokens.length) {
-        return classicCapCutReverse(shapeArabic(line));
+    function splitByLatinRuns(text) {
+      const segments = [];
+      let buffer = "";
+      let bufferLatin = null;
+
+      for (const ch of Array.from(text)) {
+        const latin = isLatinChar(ch);
+        if (bufferLatin === null) {
+          bufferLatin = latin;
+          buffer = ch;
+          continue;
+        }
+        if (latin === bufferLatin) {
+          buffer += ch;
+        } else {
+          segments.push({ text: buffer, latin: bufferLatin });
+          buffer = ch;
+          bufferLatin = latin;
+        }
       }
+      if (buffer) {
+        segments.push({ text: buffer, latin: bufferLatin });
+      }
+      return segments;
+    }
 
-      const placeholders = tokens.map((_, i) => String.fromCharCode(0xE000 + i));
-      const placeholderSet = new Set(placeholders);
-      let tokenIndex = 0;
-
-      let temp = line.replace(/[A-Za-z0-9]+/g, () => placeholders[tokenIndex++]);
-      temp = shapeArabic(temp);
-      temp = classicCapCutReverse(temp);
-
-      tokenIndex = 0;
-      return Array.from(temp)
-        .map((ch) => (placeholderSet.has(ch) ? tokens[tokenIndex++] : ch))
+    function reverseLinePreserveLatin(line) {
+      const segments = splitByLatinRuns(line);
+      return segments
+        .map((segment) => {
+          if (segment.latin) {
+            return segment.text;
+          }
+          const shaped = shapeArabic(segment.text);
+          return classicCapCutReverse(shaped);
+        })
         .join("");
     }
 
@@ -999,7 +1022,7 @@
     }
 
     function fixText() {
-      const normalized = inputText.value.replace(/\\r\\n?|\\n/g, "\\n");
+      const normalized = normalizeNewlines(inputText.value);
       const lines = normalized.split("\\n");
       const transformed = lines.map(transformLine).join("\\n");
       outputText.value = transformed;
