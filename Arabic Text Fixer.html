@@ -718,6 +718,7 @@
     const ARABIC_CHAR = /[\\u0600-\\u06FF\\u0750-\\u077F\\u08A0-\\u08FF\\uFB50-\\uFDFF\\uFE70-\\uFEFF]/;
     const ARABIC_DIACRITIC = /[\\u0610-\\u061A\\u064B-\\u065F\\u0670\\u06D6-\\u06ED]/;
     const ARABIC_DIGITS = /[\\u0660-\\u0669\\u06F0-\\u06F9]/;
+    const ARABIC_PRESENTATION = /[\\uFB50-\\uFDFF\\uFE70-\\uFEFF]/;
 
     function setTheme(theme) {
       document.documentElement.dataset.theme = theme;
@@ -756,6 +757,23 @@
 
     function containsArabic(text) {
       return ARABIC_CHAR.test(text);
+    }
+
+    function isArabicRunChar(ch, preserveLatin) {
+      if (ARABIC_DIACRITIC.test(ch)) {
+        return true;
+      }
+      if (!ARABIC_CHAR.test(ch)) {
+        return false;
+      }
+      if (preserveLatin && ARABIC_DIGITS.test(ch)) {
+        return false;
+      }
+      return true;
+    }
+
+    function hasPresentationForms(text) {
+      return ARABIC_PRESENTATION.test(text);
     }
 
     function isArabicChar(ch) {
@@ -882,6 +900,32 @@
       return segments;
     }
 
+    function splitByArabicRuns(text, preserveLatin) {
+      const segments = [];
+      let buffer = "";
+      let bufferArabic = null;
+
+      for (const ch of Array.from(text)) {
+        const arabic = isArabicRunChar(ch, preserveLatin);
+        if (bufferArabic === null) {
+          bufferArabic = arabic;
+          buffer = ch;
+          continue;
+        }
+        if (arabic === bufferArabic) {
+          buffer += ch;
+        } else {
+          segments.push({ text: buffer, arabic: bufferArabic });
+          buffer = ch;
+          bufferArabic = arabic;
+        }
+      }
+      if (buffer) {
+        segments.push({ text: buffer, arabic: bufferArabic });
+      }
+      return segments;
+    }
+
     function reverseArabicSegment(segment) {
       const clusters = [];
       for (const ch of Array.from(segment)) {
@@ -921,12 +965,21 @@
         return line;
       }
 
-      let output = shapeArabic(line);
-      output = preserveEnglish.checked
-        ? reverseForLtrDisplay(output, true)
-        : classicCapCutReverse(output);
+      const preserveLatin = preserveEnglish.checked;
+      const segments = splitByArabicRuns(line, preserveLatin);
 
-      return output;
+      return segments
+        .map((segment) => {
+          if (!segment.arabic) {
+            return segment.text;
+          }
+          if (hasPresentationForms(segment.text)) {
+            return segment.text;
+          }
+          const shaped = shapeArabic(segment.text);
+          return reverseArabicSegment(shaped);
+        })
+        .join("");
     }
 
     function fixText() {
