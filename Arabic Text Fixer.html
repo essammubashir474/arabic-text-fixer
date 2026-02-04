@@ -926,6 +926,30 @@
       return segments;
     }
 
+    function isLatinChar(ch) {
+      return /[A-Za-z0-9]/.test(ch);
+    }
+
+    function reverseNonLatinPreserveLatin(text) {
+      const chars = Array.from(text);
+      const slots = [];
+      const pool = [];
+
+      chars.forEach((ch, idx) => {
+        if (!isLatinChar(ch)) {
+          slots.push(idx);
+          pool.push(ch);
+        }
+      });
+
+      pool.reverse();
+      slots.forEach((idx, i) => {
+        chars[idx] = pool[i];
+      });
+
+      return chars.join("");
+    }
+
     function reverseArabicSegment(segment) {
       const clusters = [];
       for (const ch of Array.from(segment)) {
@@ -966,17 +990,13 @@
       }
 
       const preserveLatin = preserveEnglish.checked;
-      const segments = splitByArabicRuns(line, preserveLatin);
+      let output = shapeArabic(line);
 
-      return segments
-        .map((segment) => {
-          if (!segment.arabic) {
-            return segment.text;
-          }
-          const shaped = shapeArabic(segment.text);
-          return reverseArabicSegment(shaped);
-        })
-        .join("");
+      output = preserveLatin
+        ? reverseNonLatinPreserveLatin(output)
+        : classicCapCutReverse(output);
+
+      return output;
     }
 
     function fixText() {
