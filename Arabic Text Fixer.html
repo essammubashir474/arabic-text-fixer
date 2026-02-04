@@ -1,112 +1,1003 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart CapCut Arabic Fixer</title>
-    <style>
-        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 20px; }
-        textarea { width: 90%; height: 150px; margin: 10px 0; padding: 10px; border-radius: 5px; border: none; font-size: 16px; }
-        button { background: #00C8FF; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .output-box { background: #222; color: #00ff00; }
-        h2 { color: #00C8FF; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Arabic Text Fixer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: light dark;
+      --font-display: "Fraunces", serif;
+      --font-body: "IBM Plex Sans Arabic", sans-serif;
+      --bg: #f7f4ee;
+      --bg-2: #efe6d9;
+      --panel: rgba(255, 255, 255, 0.9);
+      --panel-2: #ffffff;
+      --text: #1f1b16;
+      --muted: #5f5549;
+      --accent: #0f8b8d;
+      --accent-2: #f3a353;
+      --accent-3: #1d6f75;
+      --ring: rgba(15, 139, 141, 0.35);
+      --border: rgba(31, 27, 22, 0.1);
+      --shadow: 0 24px 60px rgba(31, 27, 22, 0.18);
+      --shadow-soft: 0 12px 30px rgba(31, 27, 22, 0.12);
+      --pattern: rgba(31, 27, 22, 0.04);
+      --success: #1a9b5f;
+      --danger: #d8572a;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f1217;
+      --bg-2: #1a1f29;
+      --panel: rgba(20, 24, 32, 0.9);
+      --panel-2: #171b24;
+      --text: #f1eee7;
+      --muted: #bcb3a8;
+      --accent: #27b7b7;
+      --accent-2: #f7b267;
+      --accent-3: #7ce4e4;
+      --ring: rgba(39, 183, 183, 0.35);
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+      --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.4);
+      --pattern: rgba(255, 255, 255, 0.06);
+      --success: #45c585;
+      --danger: #ff7a59;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-body);
+      color: var(--text);
+      background:
+        radial-gradient(1100px circle at 15% -20%, rgba(243, 163, 83, 0.35), transparent 60%),
+        radial-gradient(900px circle at 110% 10%, rgba(15, 139, 141, 0.22), transparent 60%),
+        linear-gradient(180deg, var(--bg), var(--bg-2));
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(120deg, transparent 0%, transparent 47%, var(--pattern) 48%, transparent 49%, transparent 100%),
+        radial-gradient(var(--pattern) 1px, transparent 1px);
+      background-size: 120px 120px, 26px 26px;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
+    .brand .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: conic-gradient(from 180deg at 50% 50%, var(--accent), var(--accent-2));
+      box-shadow: 0 0 16px rgba(15, 139, 141, 0.6);
+    }
+
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 16px;
+      box-shadow: var(--shadow-soft);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+      padding: 28px;
+      background: var(--panel);
+      border-radius: 26px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(15, 139, 141, 0.15), transparent 70%);
+      right: -120px;
+      top: -120px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(2.2rem, 2vw + 2rem, 3.6rem);
+      line-height: 1.05;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 780px;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .chip {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(15, 139, 141, 0.12);
+      color: var(--accent-3);
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border-radius: 22px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 320px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+
+    .panel-title .badge {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(243, 163, 83, 0.18);
+      color: var(--accent-2);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 200px;
+      resize: vertical;
+      border-radius: 16px;
+      border: 1px solid transparent;
+      padding: 16px 18px;
+      font-size: 1rem;
+      line-height: 1.6;
+      background: var(--panel-2);
+      color: var(--text);
+      box-shadow: inset 0 0 0 1px var(--border);
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--ring);
+    }
+
+    textarea.output {
+      background: linear-gradient(135deg, rgba(15, 139, 141, 0.1), rgba(243, 163, 83, 0.08));
+      color: var(--text);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    button.primary {
+      background: linear-gradient(120deg, var(--accent), var(--accent-2));
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(15, 139, 141, 0.25);
+    }
+
+    button.primary:hover {
+      transform: translateY(-1px);
+    }
+
+    button.secondary {
+      background: rgba(15, 139, 141, 0.12);
+      color: var(--accent-3);
+    }
+
+    button.ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    button.danger {
+      background: rgba(216, 87, 42, 0.15);
+      color: var(--danger);
+    }
+
+    .stats {
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 18px;
+    }
+
+    .option-card {
+      background: var(--panel);
+      border-radius: 20px;
+      padding: 18px 18px 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .option h4 {
+      margin: 0 0 4px;
+      font-size: 1rem;
+    }
+
+    .option p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .switch {
+      position: relative;
+      width: 50px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: rgba(95, 85, 73, 0.3);
+      border-radius: 999px;
+      transition: background 0.2s ease;
+    }
+
+    .slider::after {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .switch input:checked + .slider {
+      background: linear-gradient(120deg, var(--accent), var(--accent-2));
+    }
+
+    .switch input:checked + .slider::after {
+      transform: translateX(22px);
+    }
+
+    .how {
+      background: var(--panel);
+      border-radius: 24px;
+      padding: 22px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-soft);
+      display: grid;
+      gap: 12px;
+    }
+
+    .how h3 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
+
+    .how ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      display: grid;
+      gap: 6px;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      box-shadow: var(--shadow-soft);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .stagger {
+      animation: rise 0.6s ease both;
+    }
+
+    .stagger.delay-1 { animation-delay: 0.1s; }
+    .stagger.delay-2 { animation-delay: 0.2s; }
+    .stagger.delay-3 { animation-delay: 0.3s; }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .page {
+        padding: 24px 16px 48px;
+      }
+
+      .hero {
+        padding: 22px;
+      }
+
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <span class="dot"></span>
+        Arabic Text Fixer
+      </div>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false">
+        <span id="themeLabel">Light Mode</span>
+      </button>
+    </header>
 
-    <h2>Smart CapCut Fixer</h2>
-    <p>Pastes Arabic correctly, keeps English normal.</p>
+    <section class="hero stagger">
+      <h1>Make Arabic text look perfect in CapCut and other LTR editors.</h1>
+      <p>Paste mixed Arabic + English text, shape the letters, keep Latin words readable, and generate a clean output that stays aligned when pasted into left-to-right apps.</p>
+      <div class="chip-row">
+        <span class="chip">Smart Arabic shaping</span>
+        <span class="chip">Keeps English order</span>
+        <span class="chip">CapCut-ready output</span>
+        <span class="chip">Offline, one-file tool</span>
+      </div>
+    </section>
 
-    <textarea id="inputText" placeholder="Paste your lyrics here (Arabic + English)..."></textarea>
-    
-    <br>
-    <button onclick="fixText()">FIX TEXT FOR CAPCUT</button>
-    <br>
+    <section class="workspace">
+      <div class="panel stagger delay-1">
+        <div class="panel-header">
+          <div class="panel-title">
+            Input
+            <span class="badge">Paste here</span>
+          </div>
+          <div class="toolbar">
+            <button class="ghost" id="sampleBtn" type="button">Load Sample</button>
+            <button class="danger" id="clearBtn" type="button">Clear</button>
+          </div>
+        </div>
+        <textarea id="inputText" spellcheck="false" dir="auto" placeholder="Paste your Arabic + English text here..."></textarea>
+        <div class="stats">
+          <span id="inputStats">0 chars · 0 words · 0 lines</span>
+          <span id="statusText">Ready.</span>
+        </div>
+      </div>
 
-    <textarea id="outputText" class="output-box" placeholder="Result will appear here..." readonly></textarea>
-    
-    <br>
-    <button onclick="copyText()">Copy Result</button>
+      <div class="panel stagger delay-2">
+        <div class="panel-header">
+          <div class="panel-title">
+            Output
+            <span class="badge">CapCut safe</span>
+          </div>
+          <div class="toolbar">
+            <button class="secondary" id="swapBtn" type="button">Swap</button>
+            <button class="secondary" id="downloadBtn" type="button">Download TXT</button>
+          </div>
+        </div>
+        <textarea id="outputText" class="output" readonly dir="ltr" placeholder="Fixed text will appear here..."></textarea>
+        <div class="stats">
+          <span id="outputStats">0 chars · 0 words · 0 lines</span>
+          <div class="toolbar">
+            <button class="primary" id="fixBtn" type="button">Fix Text</button>
+            <button class="secondary" id="copyBtn" type="button">Copy Result</button>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <script>
-        function fixText() {
-            let input = document.getElementById("inputText").value;
-            let lines = input.split('\n');
-            let result = [];
+    <section class="options">
+      <div class="option-card stagger delay-1">
+        <div class="option">
+          <div>
+            <h4>Auto-Fix While Typing</h4>
+            <p>Updates the output every time you change the input.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="autoFix" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="option">
+          <div>
+            <h4>Preserve English + Numbers</h4>
+            <p>Keeps Latin text in the same readable order.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="preserveEnglish" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
 
-            lines.forEach(line => {
-                // Check if line contains Arabic characters
-                if (/[\u0600-\u06FF]/.test(line)) {
-                    // It's an Arabic line: Reverse and Connect manually
-                    result.push(convertArabicLine(line));
-                } else {
-                    // It's English/Numbers/Empty: Keep exactly as is
-                    result.push(line);
-                }
-            });
+      <div class="option-card stagger delay-2">
+        <div class="option">
+          <div>
+            <h4>Shape Arabic Letters</h4>
+            <p>Converts letters into connected presentation forms.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="reshapeArabic" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="option">
+          <div>
+            <h4>Reverse for LTR Apps</h4>
+            <p>Makes Arabic read correctly in left-to-right editors.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="reverseForLtr" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
 
-            document.getElementById("outputText").value = result.join('\n');
+      <div class="option-card stagger delay-3">
+        <div class="option">
+          <div>
+            <h4>Clean Extra Spaces</h4>
+            <p>Compresses multiple spaces into single spaces.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="normalizeSpaces" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="option">
+          <div>
+            <h4>Keep Line Breaks</h4>
+            <p>Preserves every line exactly as pasted.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" checked disabled />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <section class="how stagger delay-2">
+      <h3>How it works</h3>
+      <ul>
+        <li>Detects Arabic letters line by line and shapes them into connected glyphs.</li>
+        <li>Reorders Arabic segments so they render correctly in left-to-right engines.</li>
+        <li>Preserves English words and numbers in their original order.</li>
+        <li>Outputs clean, paste-ready text for CapCut, Premiere, or any LTR editor.</li>
+      </ul>
+    </section>
+
+    <footer>
+      Built for fast, offline fixes. No data leaves your browser.
+    </footer>
+  </div>
+
+  <div class="toast" id="toast">Copied.</div>
+
+  <script>
+    const inputText = document.getElementById("inputText");
+    const outputText = document.getElementById("outputText");
+    const fixBtn = document.getElementById("fixBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const sampleBtn = document.getElementById("sampleBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const swapBtn = document.getElementById("swapBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const autoFix = document.getElementById("autoFix");
+    const preserveEnglish = document.getElementById("preserveEnglish");
+    const reshapeArabic = document.getElementById("reshapeArabic");
+    const reverseForLtr = document.getElementById("reverseForLtr");
+    const normalizeSpaces = document.getElementById("normalizeSpaces");
+    const inputStats = document.getElementById("inputStats");
+    const outputStats = document.getElementById("outputStats");
+    const statusText = document.getElementById("statusText");
+    const toast = document.getElementById("toast");
+    const themeToggle = document.getElementById("themeToggle");
+    const themeLabel = document.getElementById("themeLabel");
+
+    const sampleText = "Sample: \\u0645\\u0631\\u062d\\u0628\\u0627! Fix Arabic + English text for CapCut. \\nTitle: \\u0630\\u0627\\u0643\\u0631\\u0629 \\u0627\\u0644\\u0645\\u0633\\u0627\\u0621 \\u2764\\ufe0f \\nEnglish stays readable. 2026 version.";
+
+    const ARABIC_FORMS = {
+      "\\u0621": { isolated: "\\uFE80", final: null, initial: null, medial: null },
+      "\\u0622": { isolated: "\\uFE81", final: "\\uFE82", initial: null, medial: null },
+      "\\u0623": { isolated: "\\uFE83", final: "\\uFE84", initial: null, medial: null },
+      "\\u0624": { isolated: "\\uFE85", final: "\\uFE86", initial: null, medial: null },
+      "\\u0625": { isolated: "\\uFE87", final: "\\uFE88", initial: null, medial: null },
+      "\\u0626": { isolated: "\\uFE89", final: "\\uFE8A", initial: "\\uFE8B", medial: "\\uFE8C" },
+      "\\u0627": { isolated: "\\uFE8D", final: "\\uFE8E", initial: null, medial: null },
+      "\\u0628": { isolated: "\\uFE8F", final: "\\uFE90", initial: "\\uFE91", medial: "\\uFE92" },
+      "\\u0629": { isolated: "\\uFE93", final: "\\uFE94", initial: null, medial: null },
+      "\\u062A": { isolated: "\\uFE95", final: "\\uFE96", initial: "\\uFE97", medial: "\\uFE98" },
+      "\\u062B": { isolated: "\\uFE99", final: "\\uFE9A", initial: "\\uFE9B", medial: "\\uFE9C" },
+      "\\u062C": { isolated: "\\uFE9D", final: "\\uFE9E", initial: "\\uFE9F", medial: "\\uFEA0" },
+      "\\u062D": { isolated: "\\uFEA1", final: "\\uFEA2", initial: "\\uFEA3", medial: "\\uFEA4" },
+      "\\u062E": { isolated: "\\uFEA5", final: "\\uFEA6", initial: "\\uFEA7", medial: "\\uFEA8" },
+      "\\u062F": { isolated: "\\uFEA9", final: "\\uFEAA", initial: null, medial: null },
+      "\\u0630": { isolated: "\\uFEAB", final: "\\uFEAC", initial: null, medial: null },
+      "\\u0631": { isolated: "\\uFEAD", final: "\\uFEAE", initial: null, medial: null },
+      "\\u0632": { isolated: "\\uFEAF", final: "\\uFEB0", initial: null, medial: null },
+      "\\u0633": { isolated: "\\uFEB1", final: "\\uFEB2", initial: "\\uFEB3", medial: "\\uFEB4" },
+      "\\u0634": { isolated: "\\uFEB5", final: "\\uFEB6", initial: "\\uFEB7", medial: "\\uFEB8" },
+      "\\u0635": { isolated: "\\uFEB9", final: "\\uFEBA", initial: "\\uFEBB", medial: "\\uFEBC" },
+      "\\u0636": { isolated: "\\uFEBD", final: "\\uFEBE", initial: "\\uFEBF", medial: "\\uFEC0" },
+      "\\u0637": { isolated: "\\uFEC1", final: "\\uFEC2", initial: "\\uFEC3", medial: "\\uFEC4" },
+      "\\u0638": { isolated: "\\uFEC5", final: "\\uFEC6", initial: "\\uFEC7", medial: "\\uFEC8" },
+      "\\u0639": { isolated: "\\uFEC9", final: "\\uFECA", initial: "\\uFECB", medial: "\\uFECC" },
+      "\\u063A": { isolated: "\\uFECD", final: "\\uFECE", initial: "\\uFECF", medial: "\\uFED0" },
+      "\\u0641": { isolated: "\\uFED1", final: "\\uFED2", initial: "\\uFED3", medial: "\\uFED4" },
+      "\\u0642": { isolated: "\\uFED5", final: "\\uFED6", initial: "\\uFED7", medial: "\\uFED8" },
+      "\\u0643": { isolated: "\\uFED9", final: "\\uFEDA", initial: "\\uFEDB", medial: "\\uFEDC" },
+      "\\u0644": { isolated: "\\uFEDD", final: "\\uFEDE", initial: "\\uFEDF", medial: "\\uFEE0" },
+      "\\u0645": { isolated: "\\uFEE1", final: "\\uFEE2", initial: "\\uFEE3", medial: "\\uFEE4" },
+      "\\u0646": { isolated: "\\uFEE5", final: "\\uFEE6", initial: "\\uFEE7", medial: "\\uFEE8" },
+      "\\u0647": { isolated: "\\uFEE9", final: "\\uFEEA", initial: "\\uFEEB", medial: "\\uFEEC" },
+      "\\u0648": { isolated: "\\uFEED", final: "\\uFEEE", initial: null, medial: null },
+      "\\u0649": { isolated: "\\uFEEF", final: "\\uFEF0", initial: null, medial: null },
+      "\\u064A": { isolated: "\\uFEF1", final: "\\uFEF2", initial: "\\uFEF3", medial: "\\uFEF4" }
+    };
+
+    const LAM = "\\u0644";
+    const LAM_ALEF_LIGATURES = {
+      "\\u0622": { isolated: "\\uFEF5", final: "\\uFEF6" },
+      "\\u0623": { isolated: "\\uFEF7", final: "\\uFEF8" },
+      "\\u0625": { isolated: "\\uFEF9", final: "\\uFEFA" },
+      "\\u0627": { isolated: "\\uFEFB", final: "\\uFEFC" }
+    };
+
+    const ARABIC_CHAR = /[\\u0600-\\u06FF\\u0750-\\u077F\\u08A0-\\u08FF\\uFB50-\\uFDFF\\uFE70-\\uFEFF]/;
+    const ARABIC_DIACRITIC = /[\\u0610-\\u061A\\u064B-\\u065F\\u0670\\u06D6-\\u06ED]/;
+    const ARABIC_DIGITS = /[\\u0660-\\u0669\\u06F0-\\u06F9]/;
+
+    function setTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      const label = theme === "dark" ? "Dark Mode" : "Light Mode";
+      themeLabel.textContent = label;
+      themeToggle.setAttribute("aria-pressed", theme === "dark" ? "true" : "false");
+      localStorage.setItem("theme", theme);
+    }
+
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else {
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setTheme(prefersDark ? "dark" : "light");
+    }
+
+    themeToggle.addEventListener("click", () => {
+      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      setTheme(next);
+    });
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function updateStats(text, target) {
+      const chars = text.length;
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      const lines = text.split(/\r?\n/).length;
+      target.textContent = `${chars} chars \u00b7 ${words} words \u00b7 ${lines} lines`;
+    }
+
+    function containsArabic(text) {
+      return ARABIC_CHAR.test(text);
+    }
+
+    function isArabicChar(ch) {
+      return ARABIC_CHAR.test(ch) && !ARABIC_DIGITS.test(ch);
+    }
+
+    function isArabicDiacritic(ch) {
+      return ARABIC_DIACRITIC.test(ch);
+    }
+
+    function canConnectToNext(ch) {
+      const forms = ARABIC_FORMS[ch];
+      return forms ? !!forms.initial : false;
+    }
+
+    function canConnectFromPrev(ch) {
+      const forms = ARABIC_FORMS[ch];
+      return forms ? !!forms.final : false;
+    }
+
+    function findPrevLetterIndex(chars, start) {
+      for (let i = start; i >= 0; i -= 1) {
+        if (isArabicDiacritic(chars[i])) {
+          continue;
+        }
+        return ARABIC_FORMS[chars[i]] ? i : -1;
+      }
+      return -1;
+    }
+
+    function findNextLetterIndex(chars, start) {
+      for (let i = start; i < chars.length; i += 1) {
+        if (isArabicDiacritic(chars[i])) {
+          continue;
+        }
+        return ARABIC_FORMS[chars[i]] ? i : -1;
+      }
+      return -1;
+    }
+
+    function selectForm(forms, connectPrev, connectNext, fallback) {
+      if (connectPrev && connectNext && forms.medial) {
+        return forms.medial;
+      }
+      if (connectPrev && forms.final) {
+        return forms.final;
+      }
+      if (connectNext && forms.initial) {
+        return forms.initial;
+      }
+      return forms.isolated || fallback;
+    }
+
+    function isAlefVariant(ch) {
+      return Object.prototype.hasOwnProperty.call(LAM_ALEF_LIGATURES, ch);
+    }
+
+    function shapeArabic(text) {
+      const chars = Array.from(text);
+      const result = [];
+
+      for (let i = 0; i < chars.length; i += 1) {
+        const ch = chars[i];
+
+        if (isArabicDiacritic(ch)) {
+          result.push(ch);
+          continue;
         }
 
-        function convertArabicLine(text) {
-            // This maps standard Arabic to "Presentation Forms-B" (Connected forms)
-            // Then reverses the string for CapCut's LTR engine.
-            
-            // 1. We use a hidden canvas or specialized logic to handle shaping 
-            // Since JS doesn't have native "reshaping" libraries built-in without huge dependencies,
-            // we use a simplified reversal trick that works for most copy-pasting into older engines.
-            
-            // However, the best "Cheat" for a single file without external libraries 
-            // is to use the Unicode reversed characters logic or a dedicated reshaping map.
-            // For simplicity and speed in this specific request, we will use a character map.
-            
-            // NOTE: A full shaping engine is large. 
-            // Instead, I will provide the exact logic `arabic-text.com` uses but filter by line.
-            
-            // Since we cannot embed a 500kb library here, the logic relies on the user
-            // pasting the output into CapCut.
-            
-            // SIMPLEST FIX: The user actually just needs the logic to NOT reverse English.
-            // We assume the user pastes mixed text.
-            
-            // Given the complexity of writing a full Arabic Shaper in one HTML file,
-            // We will simulate the behavior:
-            
-            // If you copy the "Fixed" Arabic from the previous website, it reverses English too.
-            // The Logic below fixes THAT specific problem.
-            
-            // It assumes you paste ALREADY BROKEN (Reversed) text from the other website, 
-            // and it fixes the English back.
-            
-            // WAIT - The user wants a tool LIKE the website. 
-            // To do this strictly in client-side HTML without massive libraries:
-            // We will reverse the line *character by character* BUT keep english words forward.
-            
-            return text.split(" ").reverse().join(" "); 
-            // Note: True Arabic reshaping requires a library like 'reshaper.js'.
-            // Since I cannot give you a complex library file here, 
-            // I recommend this workflow with the tool above:
+        if (ch === LAM && isAlefVariant(chars[i + 1])) {
+          const alef = chars[i + 1];
+          const prevIndex = findPrevLetterIndex(chars, i - 1);
+          const prevChar = prevIndex >= 0 ? chars[prevIndex] : null;
+          const connectPrev = prevChar && canConnectToNext(prevChar) && canConnectFromPrev(LAM);
+          const ligature = connectPrev ? LAM_ALEF_LIGATURES[alef].final : LAM_ALEF_LIGATURES[alef].isolated;
+          result.push(ligature);
+          i += 1;
+          continue;
         }
-        
-        // REVISION: To make this actually work as a standalone "Fixer" like the website
-        // without external libraries, we need to be clever.
-        // We will assume the user inputs NORMAL Arabic.
-        // We will return text that uses standard "Reverse" logic but protects English.
-    </script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/arabic-persian-reshaper@1.0.1/index.min.js"></script>
-    
-    <script>
-        // Redefining the function to use the actual library logic if available,
-        // otherwise alerting the user.
-        
-        /* This script loads the necessary reshaping logic. 
-           If you save this file, it will pull the logic from the internet 
-           to ensure "Connected" letters work perfectly.
-        */
 
-        // Simplified mapping for the "Ayoo" problem specifically:
-        // We simply split the text. If a segment is English, we don't reverse it.
-    </script>
+        const forms = ARABIC_FORMS[ch];
+        if (!forms) {
+          result.push(ch);
+          continue;
+        }
+
+        const prevIndex = findPrevLetterIndex(chars, i - 1);
+        const nextIndex = findNextLetterIndex(chars, i + 1);
+        const prevChar = prevIndex >= 0 ? chars[prevIndex] : null;
+        const nextChar = nextIndex >= 0 ? chars[nextIndex] : null;
+
+        const connectPrev = prevChar && canConnectToNext(prevChar) && canConnectFromPrev(ch);
+        const connectNext = nextChar && canConnectFromPrev(nextChar) && canConnectToNext(ch);
+
+        result.push(selectForm(forms, connectPrev, connectNext, ch));
+      }
+
+      return result.join("");
+    }
+
+    function splitSegments(text) {
+      const segments = [];
+      let buffer = "";
+      let bufferArabic = null;
+
+      for (const ch of Array.from(text)) {
+        const arabic = isArabicChar(ch) || isArabicDiacritic(ch);
+        if (bufferArabic === null) {
+          bufferArabic = arabic;
+          buffer = ch;
+          continue;
+        }
+        if (arabic === bufferArabic) {
+          buffer += ch;
+        } else {
+          segments.push({ text: buffer, arabic: bufferArabic });
+          buffer = ch;
+          bufferArabic = arabic;
+        }
+      }
+      if (buffer) {
+        segments.push({ text: buffer, arabic: bufferArabic });
+      }
+      return segments;
+    }
+
+    function reverseArabicSegment(segment) {
+      const clusters = [];
+      for (const ch of Array.from(segment)) {
+        if (isArabicDiacritic(ch) && clusters.length) {
+          clusters[clusters.length - 1] += ch;
+        } else {
+          clusters.push(ch);
+        }
+      }
+      return clusters.reverse().join("");
+    }
+
+    function reverseForLtrDisplay(text, preserveLatin) {
+      if (!preserveLatin) {
+        return Array.from(text).reverse().join("");
+      }
+      const segments = splitSegments(text).reverse();
+      return segments
+        .map((segment) => (segment.arabic ? reverseArabicSegment(segment.text) : segment.text))
+        .join("");
+    }
+
+    function transformLine(line) {
+      if (!containsArabic(line)) {
+        return line;
+      }
+
+      let output = line;
+
+      if (normalizeSpaces.checked) {
+        output = output.replace(/\s+/g, " ").trim();
+      }
+
+      if (reshapeArabic.checked) {
+        output = shapeArabic(output);
+      }
+
+      if (reverseForLtr.checked) {
+        output = reverseForLtrDisplay(output, preserveEnglish.checked);
+      }
+
+      return output;
+    }
+
+    function fixText() {
+      const lines = inputText.value.split(/\r?\n/);
+      const transformed = lines.map(transformLine).join("\n");
+      outputText.value = transformed;
+      updateStats(inputText.value, inputStats);
+      updateStats(outputText.value, outputStats);
+      statusText.textContent = "Fixed at " + new Date().toLocaleTimeString();
+    }
+
+    function copyOutput() {
+      if (!outputText.value.trim()) {
+        showToast("Nothing to copy yet.");
+        return;
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(outputText.value).then(() => showToast("Copied to clipboard."));
+        return;
+      }
+      outputText.select();
+      document.execCommand("copy");
+      showToast("Copied to clipboard.");
+    }
+
+    function downloadOutput() {
+      if (!outputText.value.trim()) {
+        showToast("No output to download.");
+        return;
+      }
+      const blob = new Blob([outputText.value], { type: "text/plain" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "arabic-text-fixed.txt";
+      link.click();
+      URL.revokeObjectURL(link.href);
+      showToast("Downloaded TXT.");
+    }
+
+    function swapText() {
+      const temp = inputText.value;
+      inputText.value = outputText.value;
+      outputText.value = temp;
+      if (autoFix.checked) {
+        fixText();
+      } else {
+        updateStats(inputText.value, inputStats);
+        updateStats(outputText.value, outputStats);
+      }
+    }
+
+    fixBtn.addEventListener("click", fixText);
+    copyBtn.addEventListener("click", copyOutput);
+    downloadBtn.addEventListener("click", downloadOutput);
+    swapBtn.addEventListener("click", swapText);
+
+    sampleBtn.addEventListener("click", () => {
+      inputText.value = sampleText;
+      fixText();
+    });
+
+    clearBtn.addEventListener("click", () => {
+      inputText.value = "";
+      outputText.value = "";
+      updateStats("", inputStats);
+      updateStats("", outputStats);
+      statusText.textContent = "Cleared.";
+    });
+
+    inputText.addEventListener("input", () => {
+      updateStats(inputText.value, inputStats);
+      if (autoFix.checked) {
+        fixText();
+      }
+    });
+
+    preserveEnglish.addEventListener("change", () => autoFix.checked && fixText());
+    reshapeArabic.addEventListener("change", () => autoFix.checked && fixText());
+    reverseForLtr.addEventListener("change", () => autoFix.checked && fixText());
+    normalizeSpaces.addEventListener("change", () => autoFix.checked && fixText());
+
+    updateStats("", inputStats);
+    updateStats("", outputStats);
+  </script>
 </body>
 </html>
