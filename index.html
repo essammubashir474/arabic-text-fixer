@@ -973,9 +973,6 @@
           if (!segment.arabic) {
             return segment.text;
           }
-          if (hasPresentationForms(segment.text)) {
-            return segment.text;
-          }
           const shaped = shapeArabic(segment.text);
           return reverseArabicSegment(shaped);
         })
