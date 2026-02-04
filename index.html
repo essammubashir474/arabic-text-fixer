@@ -386,6 +386,39 @@
       transform: translateX(22px);
     }
 
+    .mode-group {
+      display: flex;
+      gap: 10px;
+      padding: 6px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+    }
+
+    .mode-pill {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid transparent;
+      font-weight: 600;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .mode-pill.active {
+      background: linear-gradient(120deg, var(--accent), var(--accent-2));
+      color: #fff;
+      box-shadow: 0 10px 20px rgba(15, 139, 141, 0.25);
+    }
+
+    .mode-note {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
     .how {
       background: var(--panel);
       border-radius: 24px;
@@ -444,6 +477,7 @@
     .stagger.delay-1 { animation-delay: 0.1s; }
     .stagger.delay-2 { animation-delay: 0.2s; }
     .stagger.delay-3 { animation-delay: 0.3s; }
+    .stagger.delay-4 { animation-delay: 0.4s; }
 
     @keyframes rise {
       from {
@@ -617,6 +651,20 @@
           </label>
         </div>
       </div>
+
+      <div class="option-card stagger delay-4">
+        <div class="option">
+          <div>
+            <h4>Output Mode</h4>
+            <p>Choose how Arabic lines are reversed for CapCut.</p>
+          </div>
+        </div>
+        <div class="mode-group" role="radiogroup" aria-label="Output mode">
+          <button class="mode-pill active" type="button" data-mode="smart" role="radio" aria-checked="true">Smart Mix</button>
+          <button class="mode-pill" type="button" data-mode="classic" role="radio" aria-checked="false">Classic CapCut</button>
+        </div>
+        <p class="mode-note">Classic mirrors arabic-text.com output (word order reversal). Smart keeps mixed English lines readable.</p>
+      </div>
     </section>
 
     <section class="how stagger delay-2">
@@ -624,7 +672,8 @@
       <ul>
         <li>Detects Arabic letters line by line and shapes them into connected glyphs.</li>
         <li>Reorders Arabic segments so they render correctly in left-to-right engines.</li>
-        <li>Preserves English words and numbers in their original order.</li>
+        <li>Smart mode preserves English words and numbers in their original order.</li>
+        <li>Classic mode mirrors arabic-text.com for CapCut-ready word reversal.</li>
         <li>Outputs clean, paste-ready text for CapCut, Premiere, or any LTR editor.</li>
       </ul>
     </section>
@@ -656,6 +705,8 @@
     const toast = document.getElementById("toast");
     const themeToggle = document.getElementById("themeToggle");
     const themeLabel = document.getElementById("themeLabel");
+    const modeButtons = Array.from(document.querySelectorAll(".mode-pill"));
+    let outputMode = "smart";
 
     const sampleText = "Sample: \\u0645\\u0631\\u062d\\u0628\\u0627! Fix Arabic + English text for CapCut. \\nTitle: \\u0630\\u0627\\u0643\\u0631\\u0629 \\u0627\\u0644\\u0645\\u0633\\u0627\\u0621 \\u2764\\ufe0f \\nEnglish stays readable. 2026 version.";
 
@@ -729,6 +780,32 @@
     themeToggle.addEventListener("click", () => {
       const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
       setTheme(next);
+    });
+
+    function modeLabel() {
+      return outputMode === "classic" ? "Classic CapCut" : "Smart Mix";
+    }
+
+    function setOutputMode(mode) {
+      outputMode = mode === "classic" ? "classic" : "smart";
+      modeButtons.forEach((button) => {
+        const active = button.dataset.mode === outputMode;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-checked", active ? "true" : "false");
+      });
+      localStorage.setItem("outputMode", outputMode);
+      if (autoFix.checked) {
+        fixText();
+      } else {
+        statusText.textContent = `Mode set to ${modeLabel()}.`;
+      }
+    }
+
+    const savedMode = localStorage.getItem("outputMode");
+    setOutputMode(savedMode);
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => setOutputMode(button.dataset.mode));
     });
 
     function showToast(message) {
@@ -895,6 +972,23 @@
         .join("");
     }
 
+    function classicCapCutReverse(text) {
+      const tokens = text.split(/(\s+)/);
+      const words = tokens.filter((token) => token.trim() !== "");
+      const reversed = words.reverse();
+      let wordIndex = 0;
+
+      return tokens
+        .map((token) => {
+          if (!token.trim()) {
+            return token;
+          }
+          const word = reversed[wordIndex++];
+          return containsArabic(word) ? reverseArabicSegment(word) : word;
+        })
+        .join("");
+    }
+
     function transformLine(line) {
       if (!containsArabic(line)) {
         return line;
@@ -911,7 +1005,9 @@
       }
 
       if (reverseForLtr.checked) {
-        output = reverseForLtrDisplay(output, preserveEnglish.checked);
+        output = outputMode === "classic"
+          ? classicCapCutReverse(output)
+          : reverseForLtrDisplay(output, preserveEnglish.checked);
       }
 
       return output;
@@ -923,7 +1019,7 @@
       outputText.value = transformed;
       updateStats(inputText.value, inputStats);
       updateStats(outputText.value, outputStats);
-      statusText.textContent = "Fixed at " + new Date().toLocaleTimeString();
+      statusText.textContent = `Fixed at ${new Date().toLocaleTimeString()} \u00b7 ${modeLabel()}`;
     }
 
     function copyOutput() {
