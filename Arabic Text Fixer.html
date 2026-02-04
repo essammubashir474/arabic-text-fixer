@@ -33,8 +33,6 @@
       --toggle-on: linear-gradient(120deg, var(--accent), var(--accent-2));
       --toggle-thumb: #ffffff;
       --toggle-thumb-shadow: 0 6px 14px rgba(31, 27, 22, 0.2);
-      --pill-bg: rgba(15, 139, 141, 0.1);
-      --pill-border: rgba(15, 139, 141, 0.18);
     }
 
     [data-theme="dark"] {
@@ -59,8 +57,6 @@
       --toggle-on: linear-gradient(120deg, rgba(39, 183, 183, 0.95), rgba(247, 178, 103, 0.95));
       --toggle-thumb: #f6f2ea;
       --toggle-thumb-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
-      --pill-bg: rgba(124, 228, 228, 0.08);
-      --pill-border: rgba(124, 228, 228, 0.2);
     }
 
     * {
@@ -446,43 +442,6 @@
       cursor: not-allowed;
     }
 
-    .mode-group {
-      display: flex;
-      gap: 10px;
-      padding: 6px;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      background: var(--panel-2);
-    }
-
-    .mode-pill {
-      flex: 1;
-      padding: 10px 12px;
-      border-radius: 12px;
-      background: var(--pill-bg);
-      color: var(--muted);
-      border: 1px solid var(--pill-border);
-      font-weight: 600;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-    }
-
-    .mode-pill:hover {
-      transform: translateY(-1px);
-    }
-
-    .mode-pill.active {
-      background: linear-gradient(120deg, var(--accent), var(--accent-2));
-      color: #fff;
-      box-shadow: 0 10px 20px rgba(15, 139, 141, 0.25);
-    }
-
-    .mode-note {
-      margin: 0;
-      font-size: 0.85rem;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
     .how {
       background: var(--panel);
       border-radius: 24px;
@@ -670,75 +629,14 @@
           </label>
         </div>
       </div>
-
-      <div class="option-card stagger delay-2">
-        <div class="option">
-          <div>
-            <h4>Shape Arabic Letters</h4>
-            <p>Converts letters into connected presentation forms.</p>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="reshapeArabic" checked />
-            <span class="slider"></span>
-          </label>
-        </div>
-        <div class="option">
-          <div>
-            <h4>Reverse for LTR Apps</h4>
-            <p>Makes Arabic read correctly in left-to-right editors.</p>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="reverseForLtr" checked />
-            <span class="slider"></span>
-          </label>
-        </div>
-      </div>
-
-      <div class="option-card stagger delay-3">
-        <div class="option">
-          <div>
-            <h4>Clean Extra Spaces</h4>
-            <p>Compresses multiple spaces into single spaces.</p>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="normalizeSpaces" />
-            <span class="slider"></span>
-          </label>
-        </div>
-        <div class="option">
-          <div>
-            <h4>Keep Line Breaks</h4>
-            <p>Preserves every line exactly as pasted.</p>
-          </div>
-          <label class="switch">
-            <input type="checkbox" checked disabled />
-            <span class="slider"></span>
-          </label>
-        </div>
-      </div>
-
-      <div class="option-card stagger delay-4">
-        <div class="option">
-          <div>
-            <h4>Output Mode</h4>
-            <p>Choose how Arabic lines are reversed for CapCut.</p>
-          </div>
-        </div>
-        <div class="mode-group" role="radiogroup" aria-label="Output mode">
-          <button class="mode-pill active" type="button" data-mode="smart" role="radio" aria-checked="true">Smart Mix</button>
-          <button class="mode-pill" type="button" data-mode="classic" role="radio" aria-checked="false">Classic CapCut</button>
-        </div>
-        <p class="mode-note">Classic mirrors arabic-text.com output (full character reversal). Smart keeps mixed English lines readable.</p>
-      </div>
     </section>
 
     <section class="how stagger delay-2">
       <h3>How it works</h3>
       <ul>
         <li>Detects Arabic letters line by line and shapes them into connected glyphs.</li>
-        <li>Reorders Arabic segments so they render correctly in left-to-right engines.</li>
-        <li>Smart mode preserves English words and numbers in their original order.</li>
-        <li>Classic mode mirrors arabic-text.com for full character reversal.</li>
+        <li>Reverses lines like arabic-text.com so they render correctly in left-to-right editors.</li>
+        <li>Preserve English + Numbers keeps Latin text readable.</li>
         <li>Outputs clean, paste-ready text for CapCut, Premiere, or any LTR editor.</li>
       </ul>
     </section>
@@ -761,17 +659,12 @@
     const downloadBtn = document.getElementById("downloadBtn");
     const autoFix = document.getElementById("autoFix");
     const preserveEnglish = document.getElementById("preserveEnglish");
-    const reshapeArabic = document.getElementById("reshapeArabic");
-    const reverseForLtr = document.getElementById("reverseForLtr");
-    const normalizeSpaces = document.getElementById("normalizeSpaces");
     const inputStats = document.getElementById("inputStats");
     const outputStats = document.getElementById("outputStats");
     const statusText = document.getElementById("statusText");
     const toast = document.getElementById("toast");
     const themeToggle = document.getElementById("themeToggle");
     const themeLabel = document.getElementById("themeLabel");
-    const modeButtons = Array.from(document.querySelectorAll(".mode-pill"));
-    let outputMode = "smart";
 
     const sampleText = "Sample: \\u0645\\u0631\\u062d\\u0628\\u0627! Fix Arabic + English text for CapCut. \\nTitle: \\u0630\\u0627\\u0643\\u0631\\u0629 \\u0627\\u0644\\u0645\\u0633\\u0627\\u0621 \\u2764\\ufe0f \\nEnglish stays readable. 2026 version.";
 
@@ -845,32 +738,6 @@
     themeToggle.addEventListener("click", () => {
       const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
       setTheme(next);
-    });
-
-    function modeLabel() {
-      return outputMode === "classic" ? "Classic CapCut" : "Smart Mix";
-    }
-
-    function setOutputMode(mode) {
-      outputMode = mode === "classic" ? "classic" : "smart";
-      modeButtons.forEach((button) => {
-        const active = button.dataset.mode === outputMode;
-        button.classList.toggle("active", active);
-        button.setAttribute("aria-checked", active ? "true" : "false");
-      });
-      localStorage.setItem("outputMode", outputMode);
-      if (autoFix.checked) {
-        fixText();
-      } else {
-        statusText.textContent = `Mode set to ${modeLabel()}.`;
-      }
-    }
-
-    const savedMode = localStorage.getItem("outputMode");
-    setOutputMode(savedMode);
-
-    modeButtons.forEach((button) => {
-      button.addEventListener("click", () => setOutputMode(button.dataset.mode));
     });
 
     function showToast(message) {
@@ -1050,26 +917,10 @@
     }
 
     function transformLine(line) {
-      if (!containsArabic(line)) {
-        return line;
-      }
-
-      let output = line;
-
-      if (normalizeSpaces.checked) {
-        output = output.replace(/\\s+/g, " ").trim();
-      }
-
-      if (reshapeArabic.checked) {
-        output = shapeArabic(output);
-      }
-
-      if (reverseForLtr.checked) {
-        output = outputMode === "classic"
-          ? classicCapCutReverse(output)
-          : reverseForLtrDisplay(output, preserveEnglish.checked);
-      }
-
+      let output = shapeArabic(line);
+      output = preserveEnglish.checked
+        ? reverseForLtrDisplay(output, true)
+        : classicCapCutReverse(output);
       return output;
     }
 
@@ -1079,7 +930,7 @@
       outputText.value = transformed;
       updateStats(inputText.value, inputStats);
       updateStats(outputText.value, outputStats);
-      statusText.textContent = `Fixed at ${new Date().toLocaleTimeString()} \u00b7 ${modeLabel()}`;
+      statusText.textContent = `Fixed at ${new Date().toLocaleTimeString()}`;
     }
 
     function copyOutput() {
@@ -1148,9 +999,6 @@
     });
 
     preserveEnglish.addEventListener("change", () => autoFix.checked && fixText());
-    reshapeArabic.addEventListener("change", () => autoFix.checked && fixText());
-    reverseForLtr.addEventListener("change", () => autoFix.checked && fixText());
-    normalizeSpaces.addEventListener("change", () => autoFix.checked && fixText());
 
     updateStats("", inputStats);
     updateStats("", outputStats);
