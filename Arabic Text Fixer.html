@@ -663,7 +663,7 @@
           <button class="mode-pill active" type="button" data-mode="smart" role="radio" aria-checked="true">Smart Mix</button>
           <button class="mode-pill" type="button" data-mode="classic" role="radio" aria-checked="false">Classic CapCut</button>
         </div>
-        <p class="mode-note">Classic mirrors arabic-text.com output (word order reversal). Smart keeps mixed English lines readable.</p>
+        <p class="mode-note">Classic mirrors arabic-text.com output (full character reversal). Smart keeps mixed English lines readable.</p>
       </div>
     </section>
 
@@ -673,7 +673,7 @@
         <li>Detects Arabic letters line by line and shapes them into connected glyphs.</li>
         <li>Reorders Arabic segments so they render correctly in left-to-right engines.</li>
         <li>Smart mode preserves English words and numbers in their original order.</li>
-        <li>Classic mode mirrors arabic-text.com for CapCut-ready word reversal.</li>
+        <li>Classic mode mirrors arabic-text.com for full character reversal.</li>
         <li>Outputs clean, paste-ready text for CapCut, Premiere, or any LTR editor.</li>
       </ul>
     </section>
@@ -973,20 +973,15 @@
     }
 
     function classicCapCutReverse(text) {
-      const tokens = text.split(/(\s+)/);
-      const words = tokens.filter((token) => token.trim() !== "");
-      const reversed = words.reverse();
-      let wordIndex = 0;
-
-      return tokens
-        .map((token) => {
-          if (!token.trim()) {
-            return token;
-          }
-          const word = reversed[wordIndex++];
-          return containsArabic(word) ? reverseArabicSegment(word) : word;
-        })
-        .join("");
+      const clusters = [];
+      for (const ch of Array.from(text)) {
+        if (isArabicDiacritic(ch) && clusters.length) {
+          clusters[clusters.length - 1] += ch;
+        } else {
+          clusters.push(ch);
+        }
+      }
+      return clusters.reverse().join("");
     }
 
     function transformLine(line) {
