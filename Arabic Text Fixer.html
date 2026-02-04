@@ -930,24 +930,24 @@
       return /[A-Za-z0-9]/.test(ch);
     }
 
-    function reverseNonLatinPreserveLatin(text) {
-      const chars = Array.from(text);
-      const slots = [];
-      const pool = [];
+    function reverseLinePreserveLatin(line) {
+      const tokens = line.match(/[A-Za-z0-9]+/g) || [];
+      if (!tokens.length) {
+        return classicCapCutReverse(shapeArabic(line));
+      }
 
-      chars.forEach((ch, idx) => {
-        if (!isLatinChar(ch)) {
-          slots.push(idx);
-          pool.push(ch);
-        }
-      });
+      const placeholders = tokens.map((_, i) => String.fromCharCode(0xE000 + i));
+      const placeholderSet = new Set(placeholders);
+      let tokenIndex = 0;
 
-      pool.reverse();
-      slots.forEach((idx, i) => {
-        chars[idx] = pool[i];
-      });
+      let temp = line.replace(/[A-Za-z0-9]+/g, () => placeholders[tokenIndex++]);
+      temp = shapeArabic(temp);
+      temp = classicCapCutReverse(temp);
 
-      return chars.join("");
+      tokenIndex = 0;
+      return Array.from(temp)
+        .map((ch) => (placeholderSet.has(ch) ? tokens[tokenIndex++] : ch))
+        .join("");
     }
 
     function reverseArabicSegment(segment) {
@@ -990,13 +990,12 @@
       }
 
       const preserveLatin = preserveEnglish.checked;
-      let output = shapeArabic(line);
+      if (preserveLatin && /[A-Za-z0-9]/.test(line)) {
+        return reverseLinePreserveLatin(line);
+      }
 
-      output = preserveLatin
-        ? reverseNonLatinPreserveLatin(output)
-        : classicCapCutReverse(output);
-
-      return output;
+      const shaped = shapeArabic(line);
+      return classicCapCutReverse(shaped);
     }
 
     function fixText() {
