@@ -750,7 +750,7 @@
     function updateStats(text, target) {
       const chars = text.length;
       const words = text.trim() ? text.trim().split(/\\s+/).length : 0;
-      const lines = text.split(/\\r?\\n/).length;
+      const lines = text.replace(/\\r\\n?|\\n/g, "\\n").split("\\n").length;
       target.textContent = `${chars} chars \\u00b7 ${words} words \\u00b7 ${lines} lines`;
     }
 
@@ -916,27 +916,22 @@
       return clusters.reverse().join("");
     }
 
-    function restoreLatinRuns(text) {
-      return text.replace(/[A-Za-z0-9]+/g, (match) => Array.from(match).reverse().join(""));
-    }
-
     function transformLine(line) {
       if (!containsArabic(line)) {
         return line;
       }
 
       let output = shapeArabic(line);
-      output = classicCapCutReverse(output);
-
-      if (preserveEnglish.checked) {
-        output = restoreLatinRuns(output);
-      }
+      output = preserveEnglish.checked
+        ? reverseForLtrDisplay(output, true)
+        : classicCapCutReverse(output);
 
       return output;
     }
 
     function fixText() {
-      const lines = inputText.value.split(/\\r?\\n/);
+      const normalized = inputText.value.replace(/\\r\\n?|\\n/g, "\\n");
+      const lines = normalized.split("\\n");
       const transformed = lines.map(transformLine).join("\\n");
       outputText.value = transformed;
       updateStats(inputText.value, inputStats);
