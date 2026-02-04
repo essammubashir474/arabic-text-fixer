@@ -331,10 +331,6 @@
         <span class="dot"></span>
         Arabic Text Converter
       </div>
-      <div class="toolbar">
-        <button class="secondary" id="sampleBtn" type="button">Load Sample</button>
-        <button class="danger" id="clearBtn" type="button">Clear All</button>
-      </div>
     </header>
 
     <section class="hero">
@@ -349,6 +345,7 @@
           <div class="toolbar">
             <button class="ghost" id="swapBtn" type="button">Swap</button>
             <button class="ghost" id="downloadBtn" type="button">Download TXT</button>
+            <button class="danger" id="clearBtn" type="button">Clear All</button>
           </div>
         </div>
         <textarea id="inputText" dir="auto" spellcheck="false" placeholder="Paste Arabic + English text here..."></textarea>
@@ -400,7 +397,7 @@
     <footer>
       Offline, single-file converter. No data leaves your browser.
       <div>Made by Essam</div>
-      <div>For Bugs &amp; Features please contact essammubashir474@gmail.com</div>
+      <div>For Bugs &amp; Features please contact essammubashir4744@gmail.com</div>
     </footer>
   </div>
 
@@ -411,7 +408,6 @@
     const outputText = document.getElementById("outputText");
     const fixBtn = document.getElementById("fixBtn");
     const copyBtn = document.getElementById("copyBtn");
-    const sampleBtn = document.getElementById("sampleBtn");
     const clearBtn = document.getElementById("clearBtn");
     const swapBtn = document.getElementById("swapBtn");
     const downloadBtn = document.getElementById("downloadBtn");
@@ -421,8 +417,6 @@
     const outputStats = document.getElementById("outputStats");
     const statusText = document.getElementById("statusText");
     const toast = document.getElementById("toast");
-
-    const sampleText = "Sample: \u0645\u0631\u062d\u0628\u0627! Fix Arabic + English text for LTR editors.\nTitle: \u0630\u0627\u0643\u0631\u0629 \u0627\u0644\u0645\u0633\u0627\u0621 \u2764\ufe0f\nEnglish stays readable when enabled. 2026 version.";
 
     const ARABIC_FORMS = {
       "\u0621": { isolated: "\uFE80", final: null, initial: null, medial: null },
@@ -666,11 +660,6 @@
     copyBtn.addEventListener("click", copyOutput);
     downloadBtn.addEventListener("click", downloadOutput);
     swapBtn.addEventListener("click", swapText);
-
-    sampleBtn.addEventListener("click", () => {
-      inputText.value = sampleText;
-      fixText();
-    });
 
     clearBtn.addEventListener("click", () => {
       inputText.value = "";
