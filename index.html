@@ -916,11 +916,22 @@
       return clusters.reverse().join("");
     }
 
+    function restoreLatinRuns(text) {
+      return text.replace(/[A-Za-z0-9]+/g, (match) => Array.from(match).reverse().join(""));
+    }
+
     function transformLine(line) {
+      if (!containsArabic(line)) {
+        return line;
+      }
+
       let output = shapeArabic(line);
-      output = preserveEnglish.checked
-        ? reverseForLtrDisplay(output, true)
-        : classicCapCutReverse(output);
+      output = classicCapCutReverse(output);
+
+      if (preserveEnglish.checked) {
+        output = restoreLatinRuns(output);
+      }
+
       return output;
     }
 
